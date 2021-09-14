@@ -5,14 +5,14 @@
 
 `include "defines.vh"
 
-module collision_predictor(input clock_in,
-                           input reset_in,
-                           input vsync_start_in,
-                           input [9:0] ball_current_x_in,
-                           input [9:0] ball_current_y_in,
-                           output predicted_valid_out,
-                           output [9:0] predicted_y_out,
-                           output ball_move_up_out);
+module collision_predictor(input i_clock,
+                           input i_reset,
+                           input i_vsync_start,
+                           input [9:0] i_ball_current_x,
+                           input [9:0] i_ball_current_y,
+                           output o_predicted_valid,
+                           output [9:0] o_predicted_y,
+                           output o_ball_move_up);
 
   localparam IDLE           = 3'b000;
   localparam BOTTOM         = 3'b001;
@@ -23,8 +23,8 @@ module collision_predictor(input clock_in,
   reg [2:0] reg_state;
   reg [2:0] next_state;
 
-  always @(posedge clock_in, posedge reset_in)
-    if (reset_in)
+  always @(posedge i_clock, posedge i_reset)
+    if (i_reset)
       reg_state <= IDLE;
     else
       reg_state <= next_state;
@@ -36,7 +36,7 @@ module collision_predictor(input clock_in,
   wire signed [9:0] delta_y;
   wire move_up;
   wire move_down;
-  wire move_x;
+  wire move_left;
 
   reg [9:0] vert_collision_x;
 
@@ -44,22 +44,21 @@ module collision_predictor(input clock_in,
   reg [9:0] next_predicted_y;
 
   reg last_collision;
-//  reg predicted_valid;
 
-  always @(posedge clock_in, posedge reset_in)
-    if (reset_in)
+  always @(posedge i_clock, posedge i_reset)
+    if (i_reset)
       begin
         reg_ball_x <= 0;
         reg_ball_y <= 0;
       end
-    else if (vsync_start_in)
+    else if (i_vsync_start)
       begin
-        reg_ball_x <= ball_current_x_in;
-        reg_ball_y <= ball_current_y_in;
+        reg_ball_x <= i_ball_current_x;
+        reg_ball_y <= i_ball_current_y;
       end
 
-  assign delta_x = (reg_ball_x > 0) ? (ball_current_x_in - reg_ball_x) : 0;
-  assign delta_y = (reg_ball_y > 0) ? (ball_current_y_in - reg_ball_y) : 0;
+  assign delta_x = (reg_ball_x > 0) ? (i_ball_current_x - reg_ball_x) : 0;
+  assign delta_y = (reg_ball_y > 0) ? (i_ball_current_y - reg_ball_y) : 0;
 
   assign move_up    = (delta_y < 0);
   assign move_down  = (delta_y > 0);
@@ -86,8 +85,8 @@ module collision_predictor(input clock_in,
         end
     end
 
-  always @(posedge clock_in, posedge reset_in)
-     if (reset_in)
+  always @(posedge i_clock, posedge i_reset)
+     if (i_reset)
       reg_predicted_y <= `VVIDEO_ON / 2;
     else
       reg_predicted_y <= next_predicted_y;
@@ -121,9 +120,9 @@ module collision_predictor(input clock_in,
       endcase
     end
 
-  assign predicted_valid_out = (reg_state == LAST_BALL_DOWN || reg_state == LAST_BALL_UP) ? 1 : 0;
-  assign predicted_y_out = reg_predicted_y;
-  assign ball_move_up_out = (predicted_valid_out & (reg_state == LAST_BALL_UP)) ? 1 : 0;
+  assign o_predicted_valid = (reg_state == LAST_BALL_DOWN || reg_state == LAST_BALL_UP) ? 1 : 0;
+  assign o_predicted_y = reg_predicted_y;
+  assign o_ball_move_up = (o_predicted_valid & (reg_state == LAST_BALL_UP)) ? 1 : 0;
 
 endmodule
 

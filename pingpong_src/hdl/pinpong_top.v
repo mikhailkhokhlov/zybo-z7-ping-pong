@@ -178,14 +178,14 @@ module pinpong_top(input i_system_clock,
                                .o_left_miss(left_miss),
                                .o_right_miss(right_miss));
 
-  collision_predictor left_collision_predictor(.clock_in(pixel_clock),
-                                               .reset_in(reg_reset1),
-                                               .vsync_start_in(vsync_start),
-                                               .ball_current_x_in(x_ball),
-                                               .ball_current_y_in(y_ball),
-                                               .predicted_valid_out(left_collision_y_valid),
-                                               .predicted_y_out(left_collision_y),
-                                               .ball_move_up_out(ball_move_up));
+  collision_predictor left_collision_predictor(.i_clock(pixel_clock),
+                                               .i_reset(reg_reset1),
+                                               .i_vsync_start(vsync_start),
+                                               .i_ball_current_x(x_ball),
+                                               .i_ball_current_y(y_ball),
+                                               .o_predicted_valid(left_collision_y_valid),
+                                               .o_predicted_y(left_collision_y),
+                                               .o_ball_move_up(ball_move_up));
 
   left_paddle_controller left_paddle_controller0(.i_clock(pixel_clock),
                                                  .i_reset(reg_reset1),
